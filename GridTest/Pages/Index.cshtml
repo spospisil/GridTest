@@ -2,9 +2,14 @@
 @using GridTest.Models
 
 <h2>Sample Grid Project</h2>
+<div>
+<button type="button" class="btn btn-primary" id="saveBtn">Save</button>
 
-<div id="gridContainer">
-    @(Html.DevExtreme().DataGrid<SecurityGroupProcedureDto>()
+</div>
+
+<form id="TestForm" method="post">
+    <div id="gridContainer">
+    @(Html.DevExtreme().DataGrid<SecurityGroupProcedureForGridDto>()
         .ID("Permissions")
         .RepaintChangesOnly(true)
         .Editing(editing => {
@@ -12,7 +17,7 @@
                     editing.Mode(GridEditMode.Cell);
             })
         .TwoWayBindingEnabled(true)
-        .KeyExpr("id")
+        //.KeyExpr("id")
         .Columns(columns => {
             columns.Add()
                 .Width("350")
@@ -26,7 +31,7 @@
                 .DataField("Status")
                 .ShowEditorAlways(true)
                 .EditCellTemplate(@<text>
-                                @(Html.DevExtreme().RadioGroup()
+                                                @(Html.DevExtreme().RadioGroup()
                         .DataSource(new List<KeyValuePair<bool?, string>>() { 
                             new KeyValuePair<bool?, string>(null, "Not Defined"),
                             new KeyValuePair<bool?, string>(true, "Enabled"),
@@ -37,36 +42,68 @@
                         .Layout(Orientation.Horizontal)
                         .OnValueChanged("function(e) { setValue(e.value); }")
                             .Value(new JS("value"))
-                                )
-                            </text>);
+                                                )
+                                            </text>);
         })
         .ShowBorders(true)
         .ShowColumnHeaders(true)
         .Paging(p => p.PageSize(10))
         )
     </div>
+</form>
 
 <script type="text/javascript">
     $(document).ready(function () {
 
-        var $ModuleSel = $('#selModule');
-        var $InputTenant = $('#TenantId');
+         $(document).on('click', '#saveBtn', function () {
+             $('#TestForm').submit();
+        });
 
-        var $moduleId = $ModuleSel.val();
-        var $tenantId = $InputTenant.val();
+        $(document).on('submit', '#TestForm', function (e) {
+            e.preventDefault();
 
-        var url = 'https://localhost:7089/Data';
+            //Get the grid's datasource
+            var grid = $("#Permissions").dxDataGrid("instance");
+            var ds = grid.getDataSource();
+            debugger;
+
+            //Write out the selected procedures to the security group
+            var apiurl = "https://localhost:7089/Data/SaveData";
+
+                ds.store().load().done(function (data) {
+                    $.ajax({
+                        url: apiurl,
+                        type: "POST",
+                        dataType: "json",
+                        data: { gridData: JSON.stringify(data) },
+                        success: function (result) {
+                            console.log('Success');
+                        },
+                        error: function (xhr, textStatus, errorThrown) {
+                            alert('Request Status: ' + xhr.status + '; Status Text: ' + textStatus + '; Error: ' + errorThrown);
+                        }
+                    });
+
+                });
+        });
+
+        console.log('test 1');
+
+        var url = "https://localhost:7089/Data";
                      
         var source = new DevExpress.data.DataSource({
             load: function () {
                 return fetch(url)
-                    .then(response => response.json())
-                    .then(data => data.objects);
-            }
+                    .then(response => response.json());
+            },
+            loadMode: "raw", // raw loadMode for CustomStore. This will ensure data operations are done in the client side
+            key: "Id"
         });
 
-        $('#gridContainer').dxDataGrid({
-            dataSource: source
-        });
+        // assign DataSource instance to datagrid
+        $('#Permissions').dxDataGrid("instance").option("dataSource", source);
+
+        // call dataSource's load() method
+        source.load();
     });
 </script>

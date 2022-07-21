@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using WebApi.Models;
 
 namespace WebApi.Controllers
 {
@@ -14,14 +16,23 @@ namespace WebApi.Controllers
             _logger = logger;
         }
 
-        [HttpGet(Name = "GetSampleData")]
+        [HttpGet]
         public string GetSampleJsonData()
         {
+            var fullPath = Path.Combine("", "Data/SampleData.json");
 
-            var fullPath = Path.Combine("", "Data/SampleData.json"); 
-
-            var jsonData = System.IO.File.ReadAllText(fullPath); 
+            var jsonData = System.IO.File.ReadAllText(fullPath);
             return jsonData;
+
+        }
+
+        [HttpPost]
+        [Route("SaveData")]
+
+        public IActionResult SaveJsonData(IFormCollection griddata)
+        {
+            var procs = JsonConvert.DeserializeObject<List<SecurityGroupProcedureForGridDto>>(griddata["gridData"]);
+            return NoContent();
 
         }
     }
