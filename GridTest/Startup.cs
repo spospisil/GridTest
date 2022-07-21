@@ -26,6 +26,7 @@ namespace GridTest
 
             // Add framework services.
             services
+                .AddCors()
                 .AddRazorPages()
                 .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
         }
@@ -47,6 +48,9 @@ namespace GridTest
             app.UseRouting();
 
             app.UseAuthorization();
+            app.UseCors(
+                options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()
+            );
 
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();

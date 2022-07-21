@@ -65,7 +65,6 @@
             //Get the grid's datasource
             var grid = $("#Permissions").dxDataGrid("instance");
             var ds = grid.getDataSource();
-            debugger;
 
             //Write out the selected procedures to the security group
             var apiurl = "https://localhost:7089/Data/SaveData";
@@ -74,6 +73,7 @@
                     $.ajax({
                         url: apiurl,
                         type: "POST",
+                        contentType: "application/json",
                         dataType: "json",
                         data: { gridData: JSON.stringify(data) },
                         success: function (result) {
